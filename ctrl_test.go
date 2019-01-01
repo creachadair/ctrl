@@ -20,11 +20,10 @@ func panicOK(t *testing.T, f func()) (val interface{}) {
 	t.Helper()
 
 	defer func() {
-		v := recover()
-		if v != nil {
-			t.Logf("Panic captured with value: %v", v)
+		val = recover()
+		if val != nil {
+			t.Logf("Panic captured with value: %v", val)
 		}
-		val = v
 	}()
 	f()
 	return
