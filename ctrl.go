@@ -29,7 +29,55 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"sync"
 )
+
+var exitHook = struct {
+	sync.Mutex
+	hook func(code int, err error)
+	exit func(code int)
+}{
+	hook: func(int, error) {},
+	exit: os.Exit,
+}
+
+func hookedExit(code int, err error) {
+	exitHook.Lock()
+	defer exitHook.Unlock()
+	exitHook.hook(code, err)
+	exitHook.exit(code)
+}
+
+// SetHook sets f as an exit hook.
+//
+// Before Run exits the program, it will call f synchronously with the code and
+// error that motivated the exit.  Once the hook returns, Run will exit.
+//
+// If f == nil, the hook is removed.  There is only one exit hook; subsequent
+// calls to SetHook will replace any previous values.
+func SetHook(f func(code int, err error)) {
+	exitHook.Lock()
+	defer exitHook.Unlock()
+	if f == nil {
+		exitHook.hook = func(int, error) {} // do nothing
+	} else {
+		exitHook.hook = f
+	}
+}
+
+// SetPanic sets whether the program should exit by panicking (true) or by
+// calling os.Exit (false). The default is false.
+//
+// This is mainly intended to support testing.
+func SetPanic(panicToExit bool) {
+	exitHook.Lock()
+	defer exitHook.Unlock()
+	if panicToExit {
+		exitHook.exit = func(int) { panic("ctrl: program terminated") }
+	} else {
+		exitHook.exit = os.Exit
+	}
+}
 
 // Run invokes main. If main returns without error, control returns from Run
 // normally. If main reports an error, it is logged and Run calls os.Exit(1).
@@ -71,15 +119,12 @@ func Run(main func() error) {
 			log.Print(err)
 		}
 		if ecode != nil {
-			osExit(*ecode)
+			hookedExit(*ecode, err)
 		}
 		// let control fall off main
 	}()
 	panic(main())
 }
-
-// osExit is a hook for testing.
-var osExit = os.Exit
 
 // Exit returns control to the most recent invocation of Run, instructing it to
 // exit the process silently with the specified exit status.

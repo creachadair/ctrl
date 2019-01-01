@@ -12,32 +12,57 @@ import (
 	"testing"
 )
 
-func setExit(f func(int)) func() {
-	old := osExit
-	osExit = f
-	return func() { osExit = old }
+func init() {
+	SetPanic(true)
+}
+
+func panicOK(t *testing.T, f func()) (val interface{}) {
+	t.Helper()
+
+	defer func() {
+		v := recover()
+		if v != nil {
+			t.Logf("Panic captured with value: %v", v)
+		}
+		val = v
+	}()
+	f()
+	return
+}
+
+func codeHook(t *testing.T, ex *bool, want int) func(int, error) {
+	return func(code int, err error) {
+		t.Helper()
+		*ex = true
+		if code != want {
+			t.Errorf("Unexpected exit code: got %d, want %d (err=%v", code, want, err)
+		}
+	}
+}
+
+func logHook(t *testing.T) func(int, error) {
+	return func(code int, err error) {
+		t.Helper()
+		t.Logf("Exit code %d, error %v", code, err)
+	}
 }
 
 // When control returns normally from main, Run should return.
 func TestRunOK(t *testing.T) {
-	defer setExit(func(code int) {
-		t.Fatalf("Unexpected exit: code=%d", code)
-	})()
-
 	Run(func() error { return nil })
 }
 
 // When control returns with an error, Run should exit 1.
 func TestRunError(t *testing.T) {
 	exited := false
-	defer setExit(func(code int) {
-		exited = true
-		if code != 1 {
-			t.Errorf("Unexpected exit code: %v", code)
-		}
-	})()
+	SetHook(codeHook(t, &exited, 1))
 
-	Run(func() error { return errors.New("bogus") })
+	p := panicOK(t, func() {
+		Run(func() error { return errors.New("bogus") })
+	})
+	if p == nil {
+		t.Error("No panic was observed")
+	}
 	if !exited {
 		t.Fatal("The exit handler did not get invoked")
 	}
@@ -46,17 +71,16 @@ func TestRunError(t *testing.T) {
 // Panics from other sources get propagated.
 func TestRunPanic(t *testing.T) {
 	const msg = "unrelated"
-	defer setExit(func(code int) { t.Logf("osExit code %d", code) })()
-	defer func() {
-		v := recover()
-		if v == nil {
-			t.Error("No panic was observed")
-		} else if v != msg {
-			t.Errorf("Panic: got %v, want %q", v, msg)
-		}
-	}()
-	Run(func() error { panic(msg) })
-	t.Fatal("Reached the unreachable star")
+	SetHook(logHook(t))
+	got := panicOK(t, func() {
+		Run(func() error { panic(msg) })
+		t.Fatalf("Reached the unreachable star")
+	})
+	if got == nil {
+		t.Error("No panic was observed")
+	} else if got != msg {
+		t.Errorf("Panic: got %v, want %q", got, msg)
+	}
 }
 
 // A call to Exit returns the reported code, but does not log.
@@ -68,14 +92,12 @@ func TestExit(t *testing.T) {
 	for code := 0; code <= 5; code++ {
 		t.Run(fmt.Sprintf("Code-%d", code), func(t *testing.T) {
 			exited := false
-			defer setExit(func(got int) {
-				exited = true
-				if got != code {
-					t.Errorf("Wrong code: got %d, want %d", got, code)
-				}
-			})()
+			SetHook(codeHook(t, &exited, code))
 			buf.Reset()
-			Run(func() error { return Exit(code) })
+			panicOK(t, func() {
+				Run(func() error { return Exit(code) })
+				t.Error("No panic was observed")
+			})
 			if code != 0 && !exited {
 				t.Errorf("Code %d: exit handler not invoked", code)
 			}
@@ -95,14 +117,12 @@ func TestExitf(t *testing.T) {
 	for code := 0; code <= 5; code++ {
 		t.Run(fmt.Sprintf("Code-%d", code), func(t *testing.T) {
 			exited := false
-			defer setExit(func(got int) {
-				exited = true
-				if got != code {
-					t.Errorf("Wrong code: got %d, want %d", got, code)
-				}
-			})()
+			SetHook(codeHook(t, &exited, code))
 			buf.Reset()
-			Run(func() error { return Exitf(code, "msg") })
+			panicOK(t, func() {
+				Run(func() error { return Exitf(code, "msg") })
+				t.Error("No panic was observed")
+			})
 			if code != 0 && !exited {
 				t.Errorf("Code %d: exit handler not invoked", code)
 			}
