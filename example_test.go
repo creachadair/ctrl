@@ -44,10 +44,27 @@ func ExampleRun_failure() {
 			fmt.Println("Hello")
 			return errors.New("goodbye")
 		})
+		fmt.Println("You do not see this")
 	})
 	// Output:
 	// Hello
 	// [exit] code=1 err=goodbye
+}
+
+func ExampleRun_panic() {
+	// N.B. catchPanic prevents ctrl.Run from terminating the example
+	// program. You do not need this in production.
+	v := catchPanic(func() {
+		ctrl.Run(func() error {
+			fmt.Println("Hello")
+			panic("omgwtfbbq")
+		})
+		fmt.Println("You do not see this")
+	})
+	fmt.Println("panic:", v)
+	// Output:
+	// Hello
+	// panic: omgwtfbbq
 }
 
 func ExampleExit() {
