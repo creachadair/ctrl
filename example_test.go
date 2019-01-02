@@ -3,6 +3,7 @@
 package ctrl_test
 
 import (
+	"errors"
 	"fmt"
 
 	"bitbucket.org/creachadair/ctrl"
@@ -24,7 +25,7 @@ func catchPanic(f func()) (val interface{}) {
 	return
 }
 
-func ExampleRun() {
+func ExampleRun_success() {
 	ctrl.Run(func() error {
 		fmt.Println("This is main")
 		return nil
@@ -33,6 +34,20 @@ func ExampleRun() {
 	// Output:
 	// This is main
 	// That was main
+}
+
+func ExampleRun_failure() {
+	// N.B. catchPanic prevents ctrl.Run from terminating the example
+	// program. You do not need this in production.
+	catchPanic(func() {
+		ctrl.Run(func() error {
+			fmt.Println("Hello")
+			return errors.New("goodbye")
+		})
+	})
+	// Output:
+	// Hello
+	// [exit] code=1 err=goodbye
 }
 
 func ExampleExit() {
