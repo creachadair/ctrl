@@ -95,3 +95,18 @@ func ExampleExitf() {
 	// Hello
 	// [exit] code=5 err=everything is bad
 }
+
+func ExampleFatalf() {
+	// N.B. catchPanic prevents ctrl.Run from terminating the example
+	// program. You do not need this in production.
+	catchPanic(func() {
+		ctrl.Run(func() error {
+			fmt.Println("Hello")
+			return ctrl.Fatalf("badness: %d", 25)
+		})
+		fmt.Println("You don't see this")
+	})
+	// Output:
+	// Hello
+	// [exit] code=1 err=badness: 25
+}

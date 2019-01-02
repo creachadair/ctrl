@@ -153,3 +153,7 @@ type logExit struct {
 }
 
 func (e *logExit) Error() string { return fmt.Sprintf(e.msg, e.args...) }
+
+// Fatalf is a shorthand for ctrl.Exitf(1, ...), that can be used as a drop-in
+// replacement for calls to log.Fatalf.
+func Fatalf(msg string, args ...interface{}) error { return Exitf(1, msg, args...) }
