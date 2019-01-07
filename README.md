@@ -23,7 +23,9 @@ import "bitbucket.org/creachadair/ctrl"
 
 // A stub main to set up the control handlers.
 func main() {
-  // setup ...
+  // The default flagset hard-exits on error. You could set it to panic
+  // on error instead, if you want to parse inside realMain.
+  flag.Parse()
 
   ctrl.Run(realMain)
 
