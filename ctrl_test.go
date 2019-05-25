@@ -69,16 +69,28 @@ func TestRunError(t *testing.T) {
 
 // Panics from other sources get propagated.
 func TestRunPanic(t *testing.T) {
-	const msg = "unrelated"
+	testErr := errors.New("this is not an error")
 	SetHook(logHook(t))
-	got := panicOK(t, func() {
-		Run(func() error { panic(msg) })
-		t.Fatalf("Reached the unreachable star")
-	})
-	if got == nil {
-		t.Error("No panic was observed")
-	} else if got != msg {
-		t.Errorf("Panic: got %v, want %q", got, msg)
+	tests := []struct {
+		fn   func() error
+		want interface{}
+	}{
+		// A panic that produces a non-error.
+		{func() error { panic("unwanted") }, "unwanted"},
+
+		// A panic that produces an error value.
+		{func() error { panic(testErr) }, testErr},
+	}
+	for _, test := range tests {
+		got := panicOK(t, func() {
+			Run(test.fn)
+			t.Fatalf("Reached the unreachable star")
+		})
+		if got == nil {
+			t.Error("No panic was observed")
+		} else if got != test.want {
+			t.Errorf("Panic: got %#v, want %#v", got, test.want)
+		}
 	}
 }
 

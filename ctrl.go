@@ -93,7 +93,6 @@ func Run(main func() error) {
 		var ecode *int
 
 		v := recover()
-
 		if e, ok := v.(*logExit); ok {
 			// control returned via Exitf
 			ecode = &e.code
@@ -102,17 +101,17 @@ func Run(main func() error) {
 			// control returned via Exit
 			ecode = new(int)
 			*ecode = int(e)
-		} else if e, ok := v.(error); ok {
-			// control returned normally with an error
-			ecode = new(int)
-			*ecode = 1
-			err = e
-		} else if v != nil {
+		} else if e, ok := v.(plainError); ok {
+			// control returned normally from main
+			if e.error != nil {
+				// failure, exit with an error
+				ecode = new(int)
+				*ecode = 1
+				err = e.error
+			}
+		} else {
 			// an unrelated panic; pass it along
 			panic(v)
-		} else {
-			// control returned normally without error; return to caller.
-			return
 		}
 
 		if err != nil {
@@ -123,8 +122,10 @@ func Run(main func() error) {
 		}
 		// let control fall off main
 	}()
-	panic(main())
+	panic(plainError{main()})
 }
+
+type plainError struct{ error }
 
 // Exit returns control to the most recent invocation of Run, instructing it to
 // exit the process silently with the specified exit status.
