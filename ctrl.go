@@ -14,7 +14,7 @@
 //
 // Example:
 //
-//    import "bitbucket.org/creachadair/ctrl"
+//    import "github.com/creachadair/ctrl"
 //
 //    // A stub main to set up the control handlers.
 //    func main() { ctrl.Run(realMain) }

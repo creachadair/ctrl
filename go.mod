@@ -1,3 +1,3 @@
-module bitbucket.org/creachadair/ctrl
+module github.com/creachadair/ctrl
 
 go 1.12

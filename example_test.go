@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 
-	"bitbucket.org/creachadair/ctrl"
+	"github.com/creachadair/ctrl"
 )
 
 func catchPanic(f func()) (val interface{}) {

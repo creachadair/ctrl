@@ -12,14 +12,14 @@ from the process as specified.
 
 [osexit]: https://godoc.org/os#Exit
 [logfatal]: https://godoc.org/log#Fatal
-[ctrl]: https://godoc.org/bitbucket.org/creachadair/ctrl
+[ctrl]: https://godoc.org/github.com/creachadair/ctrl
 
 ## Usage example
 
 The following code outlines the use of `ctrl.Run`:
 
 ```go
-import "bitbucket.org/creachadair/ctrl"
+import "github.com/creachadair/ctrl"
 
 // A stub main to set up the control handlers.
 func main() {
