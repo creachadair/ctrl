@@ -1,6 +1,6 @@
 // Copyright (C) 2018 Michael J. Fromberger. All Rights Reserved.
 
-package ctrl
+package ctrl_test
 
 import (
 	"bytes"
@@ -10,12 +10,14 @@ import (
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/creachadair/ctrl"
 )
 
-func init() {
-	SetPanic(true)
-}
+func init() { ctrl.SetPanic(true) }
 
+// panicOK runs a function f that is expected to panic, and returns the value
+// recovered from that panic (if it does) or nil.
 func panicOK(t *testing.T, f func()) (val interface{}) {
 	t.Helper()
 
@@ -48,16 +50,16 @@ func logHook(t *testing.T) func(int, error) {
 
 // When control returns normally from main, Run should return.
 func TestRunOK(t *testing.T) {
-	Run(func() error { return nil })
+	ctrl.Run(func() error { return nil })
 }
 
 // When control returns with an error, Run should exit 1.
 func TestRunError(t *testing.T) {
 	exited := false
-	SetHook(codeHook(t, &exited, 1))
+	ctrl.SetHook(codeHook(t, &exited, 1))
 
 	p := panicOK(t, func() {
-		Run(func() error { return errors.New("bogus") })
+		ctrl.Run(func() error { return errors.New("bogus") })
 	})
 	if p == nil {
 		t.Error("No panic was observed")
@@ -70,7 +72,7 @@ func TestRunError(t *testing.T) {
 // Panics from other sources get propagated.
 func TestRunPanic(t *testing.T) {
 	testErr := errors.New("this is not an error")
-	SetHook(logHook(t))
+	ctrl.SetHook(logHook(t))
 	tests := []struct {
 		fn   func() error
 		want interface{}
@@ -83,7 +85,7 @@ func TestRunPanic(t *testing.T) {
 	}
 	for _, test := range tests {
 		got := panicOK(t, func() {
-			Run(test.fn)
+			ctrl.Run(test.fn)
 			t.Fatalf("Reached the unreachable star")
 		})
 		if got == nil {
@@ -103,10 +105,10 @@ func TestExit(t *testing.T) {
 	for code := 0; code <= 5; code++ {
 		t.Run(fmt.Sprintf("Code-%d", code), func(t *testing.T) {
 			exited := false
-			SetHook(codeHook(t, &exited, code))
+			ctrl.SetHook(codeHook(t, &exited, code))
 			buf.Reset()
 			panicOK(t, func() {
-				Run(func() error { return Exit(code) })
+				ctrl.Run(func() error { return ctrl.Exit(code) })
 				t.Error("No panic was observed")
 			})
 			if code != 0 && !exited {
@@ -119,7 +121,7 @@ func TestExit(t *testing.T) {
 	}
 }
 
-// A call to Exitf returns the reported code, and logs what it got.
+// A call to ctrl.Exitf returns the reported code, and logs what it got.
 func TestExitf(t *testing.T) {
 	var buf bytes.Buffer
 	log.SetOutput(&buf)
@@ -128,10 +130,10 @@ func TestExitf(t *testing.T) {
 	for code := 0; code <= 5; code++ {
 		t.Run(fmt.Sprintf("Code-%d", code), func(t *testing.T) {
 			exited := false
-			SetHook(codeHook(t, &exited, code))
+			ctrl.SetHook(codeHook(t, &exited, code))
 			buf.Reset()
 			panicOK(t, func() {
-				Run(func() error { return Exitf(code, "msg") })
+				ctrl.Run(func() error { return ctrl.Exitf(code, "msg") })
 				t.Error("No panic was observed")
 			})
 			if code != 0 && !exited {
