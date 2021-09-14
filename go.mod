@@ -1,3 +1,3 @@
 module github.com/creachadair/ctrl
 
-go 1.12
+go 1.17
