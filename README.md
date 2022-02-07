@@ -39,7 +39,7 @@ func realMain() error {
 
   if err := doSomething(); err != nil {
      return err                          // failure, exit 1, no log
-  } else if !stateIsvalid() {
+  } else if !stateInvalid() {
      ctrl.Exitf(2, "State is invalid")   // failure, exit 2 with log
   }
   return nil                             // success
