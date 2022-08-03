@@ -14,14 +14,13 @@
 //
 // Example:
 //
-//    import "github.com/creachadair/ctrl"
+//	import "github.com/creachadair/ctrl"
 //
-//    // A stub main to set up the control handlers.
-//    func main() { ctrl.Run(realMain) }
+//	// A stub main to set up the control handlers.
+//	func main() { ctrl.Run(realMain) }
 //
-//    // The real program logic goes into this function.
-//    func realMain() error { ... }
-//
+//	// The real program logic goes into this function.
+//	func realMain() error { ... }
 package ctrl
 
 import (
