@@ -142,18 +142,18 @@ func (q quietExit) Error() string { return strconv.Itoa(int(q)) }
 //
 // Control does not return from a call to Exitf. The return type is error so
 // that it can be called in an error return statement.
-func Exitf(code int, msg string, args ...interface{}) error {
+func Exitf(code int, msg string, args ...any) error {
 	panic(&logExit{code: code, msg: msg, args: args})
 }
 
 type logExit struct {
 	code int
 	msg  string
-	args []interface{}
+	args []any
 }
 
 func (e *logExit) Error() string { return fmt.Sprintf(e.msg, e.args...) }
 
 // Fatalf is a shorthand for ctrl.Exitf(1, ...), that can be used as a drop-in
 // replacement for calls to log.Fatalf.
-func Fatalf(msg string, args ...interface{}) error { return Exitf(1, msg, args...) }
+func Fatalf(msg string, args ...any) error { return Exitf(1, msg, args...) }
