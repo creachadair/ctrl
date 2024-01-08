@@ -18,7 +18,7 @@ func init() { ctrl.SetPanic(true) }
 
 // panicOK runs a function f that is expected to panic, and returns the value
 // recovered from that panic (if it does) or nil.
-func panicOK(t *testing.T, f func()) (val interface{}) {
+func panicOK(t *testing.T, f func()) (val any) {
 	t.Helper()
 
 	defer func() {
@@ -75,7 +75,7 @@ func TestRunPanic(t *testing.T) {
 	ctrl.SetHook(logHook(t))
 	tests := []struct {
 		fn   func() error
-		want interface{}
+		want any
 	}{
 		// A panic that produces a non-error.
 		{func() error { panic("unwanted") }, "unwanted"},

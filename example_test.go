@@ -9,7 +9,7 @@ import (
 	"github.com/creachadair/ctrl"
 )
 
-func catchPanic(f func()) (val interface{}) {
+func catchPanic(f func()) (val any) {
 	// For purposes of the examples, convert exits into panics.
 	ctrl.SetPanic(true)
 
