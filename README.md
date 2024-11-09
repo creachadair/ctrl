@@ -1,5 +1,8 @@
 # ctrl: Non-local exit handling for Go main packages
 
+[![GoDoc](https://img.shields.io/static/v1?label=godoc&message=reference&color=lavender)](https://pkg.go.dev/github.com/creachadair/ctrl)
+[![CI](https://github.com/creachadair/ctrl/actions/workflows/go-presubmit.yml/badge.svg?event=push&branch=main)](https://github.com/creachadair/ctrl/actions/workflows/go-presubmit.yml)
+
 In case of error, Go `main` packages typically call [`os.Exit`][osexit] or
 [`log.Fatal`][logfatal]. This causes the process to terminate immediately, and
 deferred calls are not invoked. Calling `log.Panic`allows deferred calls to
